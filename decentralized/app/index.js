@@ -1,6 +1,6 @@
 "use client"
 import Head from "next/head";
-
+import App from "./_app";
 import { useViewerConnection, useViewerRecord } from "@self.id/react";
 import { useEffect, useState } from "react";
 
@@ -9,6 +9,20 @@ import { EthereumAuthProvider } from "@self.id/web";
 import React from 'react'
 
 function Home() {
+    const [connection, connect, disconnect] = useViewerConnection();
+    const [isWindow, setIsWindow] = useState(null);
+    //const record = useViewerRecord("basicProfile");
+
+    async function createAuthProvider(){
+        const address = await window.ethereum.request({
+            method: "eth_requestAccounts",
+        });
+        return new EthereumAuthProvider(window.ethereum, address[0]);
+    }
+    async function connectAccount(){
+        const authProvider = await createAuthProvider();
+        await connect(authProvider);
+    }
   return (
     <>
       <Head>
@@ -19,6 +33,36 @@ function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <div className="flex items-center justify-between">
+        {/* ... */}
+
+        {connection.status === "connected" ? (
+          <button
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            type="button"
+            onClick={() => disconnect()}
+          >
+            Disconnect
+          </button>
+        ) : isWindow && "ethereum" in window ? (
+          <button
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            type="button"
+            disabled={connection.status === "connecting" || !record}
+            onClick={() => {
+              connectAccount();
+            }}
+          >
+            Connect Wallet
+          </button>
+        ) : (
+          <p className="text-red-500 text-sm italic mt-2 text-center w-full">
+            An injected Ethereum provider such as{" "}
+            <a href="https://metamask.io/">MetaMask</a> is needed to
+            authenticate.
+          </p>
+        )}
+      </div>
       <main className="min-h-screen bg-gray-200">
         <div className="bg-gray-600 py-4 px-4 sm:px-6 lg:px-8 lg:py-6 shadow-lg text-white">
           <div className="container mx-auto px-6 md:px-0">
